@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "197661972186",
+    "project_id": "rma-lv",
+    "storage_bucket": "rma-lv.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197661972186:android:f6cc4ae25450fd8292b7e3",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBc-YklFx1FU79CMQ0dFbFfpOEysrVPlCA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197661972186:android:388e9643b5a217c392b7e3",
+        "android_client_info": {
+          "package_name": "rma.lv1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBc-YklFx1FU79CMQ0dFbFfpOEysrVPlCA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
