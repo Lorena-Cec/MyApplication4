@@ -6,23 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-
-import com.example.myapplication.view.BMICalculatorScreen
-import com.example.myapplication.view.BackgroundImage
-import com.example.myapplication.viewmodel.BMIViewModel
-
 import android.content.Context
 import android.widget.Toast
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
@@ -35,23 +26,26 @@ import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
-
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val currentUser = FirebaseAuth.getInstance().currentUser
+            val currentUser = remember { mutableStateOf(FirebaseAuth.getInstance().currentUser) }
             val navController = rememberNavController()
+
+            FirebaseAuth.getInstance().addAuthStateListener { auth ->
+                currentUser.value = auth.currentUser
+            }
 
             NavHost(navController, startDestination = "main_screen") {
                 composable("main_screen") {
-                    if (currentUser != null) {
-                        // Korisnik je prijavljen, prikaži ekran sa korisničkim podacima
-                        UserInfoScreen(currentUser = currentUser, onLogout = {}, navController = navController)
+                    if (currentUser.value != null) {
+                        UserInfoScreen(currentUser = currentUser.value!!, onLogout = {
+                            FirebaseAuth.getInstance().signOut()
+                            navController.navigate("login_register_screen")
+                        })
                     } else {
-                        // Korisnik nije prijavljen, prikaži Sign-in/Register Screen
                         LoginRegisterScreen(navController = navController)
                     }
                 }
@@ -60,9 +54,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
     }
-
 }
 
 @Composable
@@ -101,7 +93,7 @@ fun LoginRegisterScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(onClick = { register(context, email, password) }) {
+        Button(onClick = { register(context, email, password, navController) }) {
             Text("Register")
         }
     }
@@ -113,7 +105,6 @@ private fun signIn(context: Context, email: String, password: String, navControl
             if (task.isSuccessful) {
                 // Prijavljeno uspješno
                 Toast.makeText(context, "Logged in successfully", Toast.LENGTH_SHORT).show()
-                // Navigiraj na UserInfoScreen nakon uspješne prijave
                 navController.navigate("main_screen")
             } else {
                 // Prijavljivanje neuspješno
@@ -122,13 +113,13 @@ private fun signIn(context: Context, email: String, password: String, navControl
         }
 }
 
-
-private fun register(context: Context, email: String, password: String) {
+private fun register(context: Context, email: String, password: String, navController: NavController) {
     FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 // Registracija uspješna
                 Toast.makeText(context, "Registered successfully", Toast.LENGTH_SHORT).show()
+                navController.navigate("main_screen")
             } else {
                 // Registracija neuspješna
                 Toast.makeText(context, "Registration failed", Toast.LENGTH_SHORT).show()
@@ -137,7 +128,7 @@ private fun register(context: Context, email: String, password: String) {
 }
 
 @Composable
-fun UserInfoScreen(currentUser: FirebaseUser, onLogout: () -> Unit, navController: NavController) {
+fun UserInfoScreen(currentUser: FirebaseUser, onLogout: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -145,7 +136,7 @@ fun UserInfoScreen(currentUser: FirebaseUser, onLogout: () -> Unit, navControlle
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Welcome, ${currentUser.displayName ?: "User"}!")
+        Text("Welcome!")
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -154,13 +145,9 @@ fun UserInfoScreen(currentUser: FirebaseUser, onLogout: () -> Unit, navControlle
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(onClick = {
-            // Odjavi korisnika
-            FirebaseAuth.getInstance().signOut()
-            // Navigiraj na ekran za prijavu/registraciju
-            navController.navigate("login_register_screen")
+            onLogout()
         }) {
             Text("Logout")
         }
     }
 }
-
